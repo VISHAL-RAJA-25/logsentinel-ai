@@ -27,9 +27,6 @@ def create_user(db: Session, email: str, name: str, password: str) -> User:
 
 def authenticate(db: Session, email: str, password: str):
     user = get_user_by_email(db, email)
-    if user is None:
-        logger.warning("Login attempt for unknown email=%s", email)
-        return None
     if user.password_hash != hash_password(password):
         logger.warning("Failed login for email=%s", email)
         return None
