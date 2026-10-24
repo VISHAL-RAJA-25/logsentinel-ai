@@ -36,3 +36,8 @@ def test_payment_success(client):
     r = client.post("/payments", json={"user_id": user_id, "amount": 49.99})
     assert r.status_code == 201
     assert r.json()["status"] == "completed"
+
+
+def test_login_unknown_email(client):
+    r = client.post("/login", json={"email": "ghost@test.com", "password": "x"})
+    assert r.status_code == 401
