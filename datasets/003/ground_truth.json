@@ -1,0 +1,15 @@
+{
+  "id": "003",
+  "branch": "bug/003-missing-env-var",
+  "title": "Payment crashes: required environment variable is not set",
+  "category": "Configuration",
+  "error_type": "KeyError",
+  "file": "demo_app/shop/payment_service.py",
+  "function": "create_payment",
+  "root_cause": "create_payment reads the PAYMENT_API_KEY environment variable, which is not set in this environment",
+  "correct_fix_keywords": [
+    "PAYMENT_API_KEY",
+    "environment variable",
+    "set"
+  ]
+}

@@ -4,10 +4,23 @@
     "branch": "bug/001-null-user-login",
     "title": "Login with unknown email crashes",
     "requests": [
-      {"method": "POST", "path": "/signup",
-       "json": {"email": "a@test.com", "name": "Alice", "password": "secret123"}},
-      {"method": "POST", "path": "/login",
-       "json": {"email": "ghost@test.com", "password": "whatever"}}
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/login",
+        "json": {
+          "email": "ghost@test.com",
+          "password": "whatever"
+        }
+      }
     ],
     "ground_truth": {
       "category": "Authentication",
@@ -15,7 +28,148 @@
       "file": "demo_app/shop/user_service.py",
       "function": "authenticate",
       "root_cause": "get_user_by_email returns None for an unknown email and authenticate reads user.password_hash without a None check",
-      "correct_fix_keywords": ["None", "null check", "unknown email"]
+      "correct_fix_keywords": [
+        "None",
+        "null check",
+        "unknown email"
+      ]
+    }
+  },
+  {
+    "id": "002",
+    "branch": "bug/002-wrong-column-query",
+    "title": "Signup crashes: query uses a column that does not exist",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Database",
+      "error_type": "AttributeError",
+      "file": "demo_app/shop/user_service.py",
+      "function": "get_user_by_email",
+      "root_cause": "The query filters on User.username, but the User model has no such column; the column is called email",
+      "correct_fix_keywords": [
+        "email",
+        "username",
+        "column"
+      ]
+    }
+  },
+  {
+    "id": "003",
+    "branch": "bug/003-missing-env-var",
+    "title": "Payment crashes: required environment variable is not set",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/payments",
+        "json": {
+          "user_id": 1,
+          "amount": 49.99
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Configuration",
+      "error_type": "KeyError",
+      "file": "demo_app/shop/payment_service.py",
+      "function": "create_payment",
+      "root_cause": "create_payment reads the PAYMENT_API_KEY environment variable, which is not set in this environment",
+      "correct_fix_keywords": [
+        "PAYMENT_API_KEY",
+        "environment variable",
+        "set"
+      ]
+    }
+  },
+  {
+    "id": "004",
+    "branch": "bug/004-foreign-key-violation",
+    "title": "Payment for a non-existent user fails with a database error",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/payments",
+        "json": {
+          "user_id": 999,
+          "amount": 25.0
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Database",
+      "error_type": "IntegrityError",
+      "file": "demo_app/shop/payment_service.py",
+      "function": "create_payment",
+      "introduced_in": "demo_app/shop/database.py",
+      "root_cause": "Foreign key enforcement was enabled in database.py, but create_payment never checks that the user exists, so a payment for a missing user violates the FOREIGN KEY constraint",
+      "correct_fix_keywords": [
+        "user exists",
+        "foreign key",
+        "validate user"
+      ]
+    }
+  },
+  {
+    "id": "005",
+    "branch": "bug/005-bad-config-limit",
+    "title": "Normal payments rejected after a bad configuration value",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/payments",
+        "json": {
+          "user_id": 1,
+          "amount": 49.99
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Configuration",
+      "error_type": "ValueError",
+      "file": "demo_app/shop/payment_service.py",
+      "function": "create_payment",
+      "root_cause": "MAX_PAYMENT_AMOUNT was set to 10 in the latest release (previously 10000), so normal payments are rejected",
+      "correct_fix_keywords": [
+        "MAX_PAYMENT_AMOUNT",
+        "limit",
+        "config"
+      ]
     }
   }
 ]

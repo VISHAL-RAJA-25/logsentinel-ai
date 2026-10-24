@@ -1,0 +1,15 @@
+{
+  "id": "005",
+  "branch": "bug/005-bad-config-limit",
+  "title": "Normal payments rejected after a bad configuration value",
+  "category": "Configuration",
+  "error_type": "ValueError",
+  "file": "demo_app/shop/payment_service.py",
+  "function": "create_payment",
+  "root_cause": "MAX_PAYMENT_AMOUNT was set to 10 in the latest release (previously 10000), so normal payments are rejected",
+  "correct_fix_keywords": [
+    "MAX_PAYMENT_AMOUNT",
+    "limit",
+    "config"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "002",
+  "branch": "bug/002-wrong-column-query",
+  "title": "Signup crashes: query uses a column that does not exist",
+  "category": "Database",
+  "error_type": "AttributeError",
+  "file": "demo_app/shop/user_service.py",
+  "function": "get_user_by_email",
+  "root_cause": "The query filters on User.username, but the User model has no such column; the column is called email",
+  "correct_fix_keywords": [
+    "email",
+    "username",
+    "column"
+  ]
+}

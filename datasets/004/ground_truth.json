@@ -1,0 +1,16 @@
+{
+  "id": "004",
+  "branch": "bug/004-foreign-key-violation",
+  "title": "Payment for a non-existent user fails with a database error",
+  "category": "Database",
+  "error_type": "IntegrityError",
+  "file": "demo_app/shop/payment_service.py",
+  "function": "create_payment",
+  "introduced_in": "demo_app/shop/database.py",
+  "root_cause": "Foreign key enforcement was enabled in database.py, but create_payment never checks that the user exists, so a payment for a missing user violates the FOREIGN KEY constraint",
+  "correct_fix_keywords": [
+    "user exists",
+    "foreign key",
+    "validate user"
+  ]
+}
