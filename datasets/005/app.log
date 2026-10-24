@@ -1,0 +1,67 @@
+2026-10-24 16:55:43,604 | INFO | shop.user_service | Created user id=1 email=a@test.com
+2026-10-24 16:55:43,618 | ERROR | shop.api | Unhandled error on POST /payments
+Traceback (most recent call last):
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/routing.py", line 678, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 2811, in app
+    await route.handle(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 1330, in handle
+    await super().handle(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/routing.py", line 284, in handle
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 166, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 152, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 745, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 374, in run_endpoint_function
+    return await run_in_threadpool(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+        _run_sync_endpoint, function=dependant.call, arguments=values
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/telemetry/_api.py", line 244, in _run_sync_endpoint
+    return function(**arguments)
+  File "/private/var/folders/9s/h3844qrx7hxcqt2mb8lh6dbm0000gn/T/logsentinel_junc41gp/repo/demo_app/shop/main.py", line 64, in pay
+    payment = payment_service.create_payment(db, body.user_id, body.amount)
+  File "/private/var/folders/9s/h3844qrx7hxcqt2mb8lh6dbm0000gn/T/logsentinel_junc41gp/repo/demo_app/shop/payment_service.py", line 17, in create_payment
+    raise ValueError(f"Amount {amount} exceeds MAX_PAYMENT_AMOUNT={MAX_PAYMENT_AMOUNT}")
+ValueError: Amount 49.99 exceeds MAX_PAYMENT_AMOUNT=10

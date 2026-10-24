@@ -223,3 +223,6 @@ __marimo__/
 *.db
 logs/
 test_logs/
+
+# keep dataset logs
+!datasets/**/*.log
