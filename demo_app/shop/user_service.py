@@ -13,7 +13,7 @@ def hash_password(password: str) -> str:
 
 
 def get_user_by_email(db: Session, email: str):
-    return db.query(User).filter(User.email == email).first()
+    return db.query(User).filter(User.username == email).first()
 
 
 def create_user(db: Session, email: str, name: str, password: str) -> User:
