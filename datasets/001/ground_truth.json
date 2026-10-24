@@ -1,0 +1,15 @@
+{
+  "id": "001",
+  "branch": "bug/001-null-user-login",
+  "title": "Login with unknown email crashes",
+  "category": "Authentication",
+  "error_type": "AttributeError",
+  "file": "demo_app/shop/user_service.py",
+  "function": "authenticate",
+  "root_cause": "get_user_by_email returns None for an unknown email and authenticate reads user.password_hash without a None check",
+  "correct_fix_keywords": [
+    "None",
+    "null check",
+    "unknown email"
+  ]
+}
