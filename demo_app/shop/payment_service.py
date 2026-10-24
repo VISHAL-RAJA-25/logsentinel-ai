@@ -1,4 +1,5 @@
 import logging
+import os
 
 from sqlalchemy.orm import Session
 
@@ -8,6 +9,7 @@ logger = logging.getLogger("shop.payment_service")
 
 
 def create_payment(db: Session, user_id: int, amount: float) -> Payment:
+    api_key = os.environ["PAYMENT_API_KEY"]
     if amount <= 0:
         raise ValueError("Amount must be positive")
     payment = Payment(user_id=user_id, amount=amount, status="completed")
