@@ -1,4 +1,5 @@
 import logging
+import os
 
 from sqlalchemy.orm import Session
 
@@ -15,4 +16,8 @@ def create_payment(db: Session, user_id: int, amount: float) -> Payment:
     db.commit()
     db.refresh(payment)
     logger.info("Payment id=%s user_id=%s amount=%s", payment.id, user_id, amount)
+    receipt_dir = "/var/shop/receipts"
+    os.makedirs(receipt_dir, exist_ok=True)
+    with open(os.path.join(receipt_dir, f"{payment.id}.txt"), "w") as f:
+        f.write(f"Payment {payment.id}: {amount}")
     return payment
