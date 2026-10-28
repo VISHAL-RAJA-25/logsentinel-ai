@@ -9,7 +9,9 @@ logger = logging.getLogger("shop.user_service")
 
 
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    import argon2
+
+    return argon2.PasswordHasher().hash(password)
 
 
 def get_user_by_email(db: Session, email: str):
