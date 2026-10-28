@@ -96,3 +96,7 @@ Base = declarative_base()''')],
         },
     },
 }
+
+from bugs_batch2 import BUGS2
+
+BUGS.update(BUGS2)
