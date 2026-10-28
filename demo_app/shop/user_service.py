@@ -17,7 +17,8 @@ def get_user_by_email(db: Session, email: str):
 
 
 def create_user(db: Session, email: str, name: str, password: str) -> User:
-    user = User(email=email, name=name, password_hash=hash_password(password))
+    display_name = name.split()[1]  # show last name in the UI
+    user = User(email=email, name=display_name, password_hash=hash_password(password))
     db.add(user)
     db.commit()
     db.refresh(user)
