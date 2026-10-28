@@ -1,0 +1,140 @@
+2026-10-28 13:31:48,670 | INFO | shop.user_service | Created user id=1 email=a@test.com
+2026-10-28 13:31:48,722 | ERROR | shop.api | Unhandled error on POST /payments
+Traceback (most recent call last):
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpcore/_sync/connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpcore/_backends/sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 61] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/routing.py", line 678, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 2811, in app
+    await route.handle(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 1330, in handle
+    await super().handle(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/routing.py", line 284, in handle
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 166, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 152, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 745, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 374, in run_endpoint_function
+    return await run_in_threadpool(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+        _run_sync_endpoint, function=dependant.call, arguments=values
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/telemetry/_api.py", line 244, in _run_sync_endpoint
+    return function(**arguments)
+  File "/private/var/folders/9s/h3844qrx7hxcqt2mb8lh6dbm0000gn/T/logsentinel_gc542uaa/repo/demo_app/shop/main.py", line 64, in pay
+    payment = payment_service.create_payment(db, body.user_id, body.amount)
+  File "/private/var/folders/9s/h3844qrx7hxcqt2mb8lh6dbm0000gn/T/logsentinel_gc542uaa/repo/demo_app/shop/payment_service.py", line 16, in create_payment
+    httpx.post(f"{GATEWAY_URL}/charge", json={"user_id": user_id, "amount": amount}, timeout=3)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_api.py", line 304, in post
+    return request(
+        "POST",
+    ...<13 lines>...
+        trust_env=trust_env,
+    )
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_api.py", line 109, in request
+    return client.request(
+           ~~~~~~~~~~~~~~^
+        method=method,
+        ^^^^^^^^^^^^^^
+    ...<8 lines>...
+        follow_redirects=follow_redirects,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 61] Connection refused

@@ -171,5 +171,336 @@
         "config"
       ]
     }
+  },
+  {
+    "id": "006",
+    "branch": "bug/006-db-pool-timeout",
+    "title": "Signup times out waiting for a database connection",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Timeout",
+      "error_type": "TimeoutError",
+      "file": "demo_app/shop/user_service.py",
+      "function": "record_signup_audit",
+      "introduced_in": "demo_app/shop/database.py",
+      "root_cause": "The connection pool was shrunk to one connection with no overflow, and record_signup_audit opens a second session while the request session still holds that connection, so the checkout times out",
+      "correct_fix_keywords": [
+        "pool_size",
+        "connection pool",
+        "second session"
+      ]
+    }
+  },
+  {
+    "id": "007",
+    "branch": "bug/007-missing-dependency",
+    "title": "Signup fails: required package is not installed",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Deployment",
+      "error_type": "ModuleNotFoundError",
+      "file": "demo_app/shop/user_service.py",
+      "function": "hash_password",
+      "root_cause": "hash_password imports argon2, but the package was never added to requirements.txt or installed in this environment",
+      "correct_fix_keywords": [
+        "argon2",
+        "requirements",
+        "install"
+      ]
+    }
+  },
+  {
+    "id": "008",
+    "branch": "bug/008-fee-rate-string",
+    "title": "Payment crashes: fee rate from config is a string",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/payments",
+        "json": {
+          "user_id": 1,
+          "amount": 49.99
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Configuration",
+      "error_type": "TypeError",
+      "file": "demo_app/shop/payment_service.py",
+      "function": "create_payment",
+      "root_cause": "FEE_RATE is read with os.getenv, so it is a string, and create_payment multiplies the float amount by that string",
+      "correct_fix_keywords": [
+        "FEE_RATE",
+        "float",
+        "convert"
+      ]
+    }
+  },
+  {
+    "id": "009",
+    "branch": "bug/009-receipt-permission",
+    "title": "Payment fails after saving: cannot write receipt file",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/payments",
+        "json": {
+          "user_id": 1,
+          "amount": 49.99
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Permission",
+      "error_type": "PermissionError",
+      "file": "demo_app/shop/payment_service.py",
+      "function": "create_payment",
+      "root_cause": "create_payment writes receipts to /var/shop/receipts, a directory the application user is not allowed to create",
+      "correct_fix_keywords": [
+        "permission",
+        "receipt",
+        "directory"
+      ]
+    }
+  },
+  {
+    "id": "010",
+    "branch": "bug/010-display-name-index",
+    "title": "Signup crashes for users with a one-word name",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Application Logic",
+      "error_type": "IndexError",
+      "file": "demo_app/shop/user_service.py",
+      "function": "create_user",
+      "root_cause": "create_user takes name.split()[1], which assumes the name has at least two words, but the name was a single word",
+      "correct_fix_keywords": [
+        "split",
+        "index",
+        "single word"
+      ]
+    }
+  },
+  {
+    "id": "011",
+    "branch": "bug/011-gateway-down",
+    "title": "Payments fail: payment gateway refuses connections",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/payments",
+        "json": {
+          "user_id": 1,
+          "amount": 49.99
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Third-party API",
+      "error_type": "ConnectError",
+      "file": "demo_app/shop/payment_service.py",
+      "function": "create_payment",
+      "root_cause": "create_payment calls the payment gateway at GATEWAY_URL, but nothing is listening on that address, so the connection is refused",
+      "correct_fix_keywords": [
+        "gateway",
+        "connection refused",
+        "retry"
+      ]
+    }
+  },
+  {
+    "id": "012",
+    "branch": "bug/012-recursive-normalize",
+    "title": "Signup crashes with maximum recursion depth exceeded",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Application Logic",
+      "error_type": "RecursionError",
+      "file": "demo_app/shop/user_service.py",
+      "function": "normalize_email",
+      "root_cause": "normalize_email calls itself instead of returning the cleaned value, so it recurses until the recursion limit",
+      "correct_fix_keywords": [
+        "recursion",
+        "normalize_email",
+        "return"
+      ]
+    }
+  },
+  {
+    "id": "013",
+    "branch": "bug/013-decode-str",
+    "title": "Every login crashes after password comparison change",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/login",
+        "json": {
+          "email": "a@test.com",
+          "password": "secret123"
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Authentication",
+      "error_type": "AttributeError",
+      "file": "demo_app/shop/user_service.py",
+      "function": "authenticate",
+      "root_cause": "authenticate calls .decode() on password_hash, which is already a str, so every login raises AttributeError",
+      "correct_fix_keywords": [
+        "decode",
+        "str",
+        "password_hash"
+      ]
+    }
+  },
+  {
+    "id": "014",
+    "branch": "bug/014-duplicate-signup",
+    "title": "Duplicate signup returns 500 with a unique constraint error",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Database",
+      "error_type": "IntegrityError",
+      "file": "demo_app/shop/user_service.py",
+      "function": "create_user",
+      "introduced_in": "demo_app/shop/main.py",
+      "root_cause": "The email-exists check was removed from the signup route, so a duplicate email reaches the database and violates the UNIQUE constraint on users.email",
+      "correct_fix_keywords": [
+        "duplicate",
+        "unique",
+        "409"
+      ]
+    }
+  },
+  {
+    "id": "015",
+    "branch": "bug/015-wrong-table-sql",
+    "title": "Payment saved but request fails: raw SQL uses wrong table",
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/signup",
+        "json": {
+          "email": "a@test.com",
+          "name": "Alice",
+          "password": "secret123"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/payments",
+        "json": {
+          "user_id": 1,
+          "amount": 49.99
+        }
+      }
+    ],
+    "ground_truth": {
+      "category": "Database",
+      "error_type": "OperationalError",
+      "file": "demo_app/shop/payment_service.py",
+      "function": "create_payment",
+      "root_cause": "The raw SQL query selects from a table named payment, but the table is called payments",
+      "correct_fix_keywords": [
+        "payments",
+        "table name",
+        "SQL"
+      ]
+    }
   }
 ]

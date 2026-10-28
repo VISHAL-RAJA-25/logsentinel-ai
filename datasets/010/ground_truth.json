@@ -1,0 +1,15 @@
+{
+  "id": "010",
+  "branch": "bug/010-display-name-index",
+  "title": "Signup crashes for users with a one-word name",
+  "category": "Application Logic",
+  "error_type": "IndexError",
+  "file": "demo_app/shop/user_service.py",
+  "function": "create_user",
+  "root_cause": "create_user takes name.split()[1], which assumes the name has at least two words, but the name was a single word",
+  "correct_fix_keywords": [
+    "split",
+    "index",
+    "single word"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "011",
+  "branch": "bug/011-gateway-down",
+  "title": "Payments fail: payment gateway refuses connections",
+  "category": "Third-party API",
+  "error_type": "ConnectError",
+  "file": "demo_app/shop/payment_service.py",
+  "function": "create_payment",
+  "root_cause": "create_payment calls the payment gateway at GATEWAY_URL, but nothing is listening on that address, so the connection is refused",
+  "correct_fix_keywords": [
+    "gateway",
+    "connection refused",
+    "retry"
+  ]
+}

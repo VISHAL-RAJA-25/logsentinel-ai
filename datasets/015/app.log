@@ -1,0 +1,150 @@
+2026-10-28 13:31:53,693 | INFO | shop.user_service | Created user id=1 email=a@test.com
+2026-10-28 13:31:53,708 | INFO | shop.payment_service | Payment id=1 user_id=1 amount=49.99
+2026-10-28 13:31:53,709 | ERROR | shop.api | Unhandled error on POST /payments
+Traceback (most recent call last):
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1958, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 1192, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: payment
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/routing.py", line 678, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 2811, in app
+    await route.handle(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 1330, in handle
+    await super().handle(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/routing.py", line 284, in handle
+    await self.app(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 166, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 152, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 745, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/routing.py", line 374, in run_endpoint_function
+    return await run_in_threadpool(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+        _run_sync_endpoint, function=dependant.call, arguments=values
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/fastapi/telemetry/_api.py", line 244, in _run_sync_endpoint
+    return function(**arguments)
+  File "/private/var/folders/9s/h3844qrx7hxcqt2mb8lh6dbm0000gn/T/logsentinel_jzfzran7/repo/demo_app/shop/main.py", line 64, in pay
+    payment = payment_service.create_payment(db, body.user_id, body.amount)
+  File "/private/var/folders/9s/h3844qrx7hxcqt2mb8lh6dbm0000gn/T/logsentinel_jzfzran7/repo/demo_app/shop/payment_service.py", line 19, in create_payment
+    count = db.execute(
+            ~~~~~~~~~~^
+        text("SELECT COUNT(*) FROM payment WHERE user_id = :uid"), {"uid": user_id}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).scalar()
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2473, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2373, in _execute_internal
+    result = conn.execute(
+        statement, params, execution_options=combined_execution_options
+    )
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1463, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 533, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1683, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<9 lines>...
+        param_dict=param_dict,
+    )
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1837, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1977, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2347, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1958, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/vishalr/Documents/logsentinel-ai/logsentinel-ai/venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 1192, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: payment
+[SQL: SELECT COUNT(*) FROM payment WHERE user_id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/21/e3q8)

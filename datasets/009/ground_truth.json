@@ -1,0 +1,15 @@
+{
+  "id": "009",
+  "branch": "bug/009-receipt-permission",
+  "title": "Payment fails after saving: cannot write receipt file",
+  "category": "Permission",
+  "error_type": "PermissionError",
+  "file": "demo_app/shop/payment_service.py",
+  "function": "create_payment",
+  "root_cause": "create_payment writes receipts to /var/shop/receipts, a directory the application user is not allowed to create",
+  "correct_fix_keywords": [
+    "permission",
+    "receipt",
+    "directory"
+  ]
+}

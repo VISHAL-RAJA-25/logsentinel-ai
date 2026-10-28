@@ -1,0 +1,16 @@
+{
+  "id": "006",
+  "branch": "bug/006-db-pool-timeout",
+  "title": "Signup times out waiting for a database connection",
+  "category": "Timeout",
+  "error_type": "TimeoutError",
+  "file": "demo_app/shop/user_service.py",
+  "function": "record_signup_audit",
+  "introduced_in": "demo_app/shop/database.py",
+  "root_cause": "The connection pool was shrunk to one connection with no overflow, and record_signup_audit opens a second session while the request session still holds that connection, so the checkout times out",
+  "correct_fix_keywords": [
+    "pool_size",
+    "connection pool",
+    "second session"
+  ]
+}

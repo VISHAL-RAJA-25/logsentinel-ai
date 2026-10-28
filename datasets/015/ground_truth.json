@@ -1,0 +1,15 @@
+{
+  "id": "015",
+  "branch": "bug/015-wrong-table-sql",
+  "title": "Payment saved but request fails: raw SQL uses wrong table",
+  "category": "Database",
+  "error_type": "OperationalError",
+  "file": "demo_app/shop/payment_service.py",
+  "function": "create_payment",
+  "root_cause": "The raw SQL query selects from a table named payment, but the table is called payments",
+  "correct_fix_keywords": [
+    "payments",
+    "table name",
+    "SQL"
+  ]
+}

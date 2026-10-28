@@ -1,0 +1,16 @@
+{
+  "id": "014",
+  "branch": "bug/014-duplicate-signup",
+  "title": "Duplicate signup returns 500 with a unique constraint error",
+  "category": "Database",
+  "error_type": "IntegrityError",
+  "file": "demo_app/shop/user_service.py",
+  "function": "create_user",
+  "introduced_in": "demo_app/shop/main.py",
+  "root_cause": "The email-exists check was removed from the signup route, so a duplicate email reaches the database and violates the UNIQUE constraint on users.email",
+  "correct_fix_keywords": [
+    "duplicate",
+    "unique",
+    "409"
+  ]
+}

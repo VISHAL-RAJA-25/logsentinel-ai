@@ -1,0 +1,15 @@
+{
+  "id": "013",
+  "branch": "bug/013-decode-str",
+  "title": "Every login crashes after password comparison change",
+  "category": "Authentication",
+  "error_type": "AttributeError",
+  "file": "demo_app/shop/user_service.py",
+  "function": "authenticate",
+  "root_cause": "authenticate calls .decode() on password_hash, which is already a str, so every login raises AttributeError",
+  "correct_fix_keywords": [
+    "decode",
+    "str",
+    "password_hash"
+  ]
+}

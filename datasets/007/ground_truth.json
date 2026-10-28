@@ -1,0 +1,15 @@
+{
+  "id": "007",
+  "branch": "bug/007-missing-dependency",
+  "title": "Signup fails: required package is not installed",
+  "category": "Deployment",
+  "error_type": "ModuleNotFoundError",
+  "file": "demo_app/shop/user_service.py",
+  "function": "hash_password",
+  "root_cause": "hash_password imports argon2, but the package was never added to requirements.txt or installed in this environment",
+  "correct_fix_keywords": [
+    "argon2",
+    "requirements",
+    "install"
+  ]
+}

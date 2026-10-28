@@ -1,0 +1,15 @@
+{
+  "id": "008",
+  "branch": "bug/008-fee-rate-string",
+  "title": "Payment crashes: fee rate from config is a string",
+  "category": "Configuration",
+  "error_type": "TypeError",
+  "file": "demo_app/shop/payment_service.py",
+  "function": "create_payment",
+  "root_cause": "FEE_RATE is read with os.getenv, so it is a string, and create_payment multiplies the float amount by that string",
+  "correct_fix_keywords": [
+    "FEE_RATE",
+    "float",
+    "convert"
+  ]
+}

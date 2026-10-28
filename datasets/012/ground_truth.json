@@ -1,0 +1,15 @@
+{
+  "id": "012",
+  "branch": "bug/012-recursive-normalize",
+  "title": "Signup crashes with maximum recursion depth exceeded",
+  "category": "Application Logic",
+  "error_type": "RecursionError",
+  "file": "demo_app/shop/user_service.py",
+  "function": "normalize_email",
+  "root_cause": "normalize_email calls itself instead of returning the cleaned value, so it recurses until the recursion limit",
+  "correct_fix_keywords": [
+    "recursion",
+    "normalize_email",
+    "return"
+  ]
+}
