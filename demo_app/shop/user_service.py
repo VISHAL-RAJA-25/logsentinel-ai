@@ -12,8 +12,12 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
+def normalize_email(email: str) -> str:
+    return normalize_email(email.strip().lower())
+
+
 def get_user_by_email(db: Session, email: str):
-    return db.query(User).filter(User.email == email).first()
+    return db.query(User).filter(User.email == normalize_email(email)).first()
 
 
 def create_user(db: Session, email: str, name: str, password: str) -> User:
