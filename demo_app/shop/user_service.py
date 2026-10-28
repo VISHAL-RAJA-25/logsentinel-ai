@@ -30,7 +30,7 @@ def authenticate(db: Session, email: str, password: str):
     if user is None:
         logger.warning("Login attempt for unknown email=%s", email)
         return None
-    if user.password_hash != hash_password(password):
+    if user.password_hash.decode() != hash_password(password):
         logger.warning("Failed login for email=%s", email)
         return None
     logger.info("Login success for user id=%s", user.id)
