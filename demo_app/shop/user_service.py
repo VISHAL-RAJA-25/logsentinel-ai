@@ -3,6 +3,9 @@ import logging
 
 from sqlalchemy.orm import Session
 
+from sqlalchemy import text
+
+from .database import SessionLocal
 from .models import User
 
 logger = logging.getLogger("shop.user_service")
@@ -16,11 +19,20 @@ def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
 
+def record_signup_audit(email: str) -> None:
+    audit_db = SessionLocal()
+    try:
+        audit_db.execute(text("SELECT 1"))
+    finally:
+        audit_db.close()
+
+
 def create_user(db: Session, email: str, name: str, password: str) -> User:
     user = User(email=email, name=name, password_hash=hash_password(password))
     db.add(user)
     db.commit()
     db.refresh(user)
+    record_signup_audit(user.email)
     logger.info("Created user id=%s email=%s", user.id, user.email)
     return user
 
