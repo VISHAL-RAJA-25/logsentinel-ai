@@ -1,0 +1,30 @@
+{
+  "id": "014",
+  "model": "groq/openai/gpt-oss-20b",
+  "classification": {
+    "category": "Database",
+    "source": "rules",
+    "reason": "database library error"
+  },
+  "analysis": {
+    "summary": "A duplicate signup attempt caused a UNIQUE constraint violation on the users.email column after the email\u2011duplication check was removed.",
+    "hypotheses": [
+      {
+        "cause": "The commit 44c91dac removed the pre\u2011insertion email existence check in demo_app/shop/main.py, allowing duplicate emails to be inserted and triggering the SQLite UNIQUE constraint error.",
+        "confidence": 95,
+        "evidence": [
+          "`-    if user_service.get_user_by_email(db, body.email):`",
+          "`-        raise HTTPException(status_code=409, detail=\"Email already registered\")`",
+          "`[parameters: ('a@test.com', 'Alice', 'fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4')]`"
+        ],
+        "suggested_fix": "Re\u2011add the duplicate\u2011email check in demo_app/shop/main.py: restore the if block that calls user_service.get_user_by_email and raises HTTPException 409.",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/main.py"
+        ],
+        "quotes_total": 3,
+        "quotes_verified": 3
+      }
+    ]
+  }
+}

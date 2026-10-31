@@ -1,0 +1,43 @@
+{
+  "id": "002",
+  "model": "groq/openai/gpt-oss-20b",
+  "classification": {
+    "category": "Database",
+    "source": "rules",
+    "reason": "database call on the failing line"
+  },
+  "analysis": {
+    "summary": "The signup endpoint fails because the user lookup uses a non\u2011existent User.username column.",
+    "hypotheses": [
+      {
+        "cause": "The recent commit changed the lookup from User.email to User.username, but the User model still defines only an email column, causing an AttributeError.",
+        "confidence": 90,
+        "evidence": [
+          "`return db.query(User).filter(User.username == email).first()`",
+          "`AttributeError: type object 'User' has no attribute 'username'`"
+        ],
+        "suggested_fix": "Revert the filter to use the existing email column: change `User.username` to `User.email` in demo_app/shop/user_service.py.",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/user_service.py"
+        ],
+        "quotes_total": 2,
+        "quotes_verified": 2
+      },
+      {
+        "cause": "The User model was not updated to include a username field, so any reference to User.username will fail.",
+        "confidence": 5,
+        "evidence": [
+          "`import hashlib\nimport logging\nfrom sqlalchemy.orm import Session\nfrom .models import User`"
+        ],
+        "suggested_fix": "Add a username column to the User model or remove its usage in the service layer.",
+        "risk_level": "medium",
+        "files_involved": [
+          "demo_app/shop/models.py"
+        ],
+        "quotes_total": 1,
+        "quotes_verified": 1
+      }
+    ]
+  }
+}

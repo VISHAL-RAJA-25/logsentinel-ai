@@ -1,0 +1,44 @@
+{
+  "id": "001",
+  "model": "groq/openai/gpt-oss-20b",
+  "classification": {
+    "category": "Authentication",
+    "source": "rules",
+    "reason": "authentication code involved"
+  },
+  "analysis": {
+    "summary": "The login endpoint crashed because the authenticate function accessed a None user object after the guard for missing users was removed in a recent commit.",
+    "hypotheses": [
+      {
+        "cause": "The guard that checks for a missing user was removed in commit fac9faff, so authenticate attempts to access user.password_hash on a None object when the email is not found.",
+        "confidence": 90,
+        "evidence": [
+          "-    if user is None:",
+          "-        logger.warning(\"Login attempt for unknown email=%s\", email)",
+          "-        return None"
+        ],
+        "suggested_fix": "Re\u2011add the None check in demo_app/shop/user_service.py before accessing user.password_hash: `if user is None: logger.warning(\"Login attempt for unknown email=%s\", email); return None`",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/user_service.py"
+        ],
+        "quotes_total": 0,
+        "quotes_verified": 0
+      },
+      {
+        "cause": "The email supplied in the login request does not match any existing user, causing get_user_by_email to return None.",
+        "confidence": 10,
+        "evidence": [
+          "INFO | shop.user_service | Created user id=1 email=a@test.com"
+        ],
+        "suggested_fix": "Ensure the login request uses a registered email or add a user with that email.",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/user_service.py"
+        ],
+        "quotes_total": 0,
+        "quotes_verified": 0
+      }
+    ]
+  }
+}
