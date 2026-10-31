@@ -1,0 +1,28 @@
+{
+  "id": "015",
+  "model": "groq/openai/gpt-oss-20b",
+  "classification": {
+    "category": "Database",
+    "source": "rules",
+    "reason": "database library error"
+  },
+  "analysis": {
+    "summary": "A raw SQL query in payment_service.py references a non\u2011existent table name, causing an OperationalError after a successful ORM insert.",
+    "hypotheses": [
+      {
+        "cause": "The raw SQL query uses the table name \"payment\" instead of the actual table name \"payments\" defined by the Payment model, leading to a missing table error.",
+        "confidence": 90,
+        "evidence": [
+          "`text(\"SELECT COUNT(*) FROM payment WHERE user_id = :uid\")`"
+        ],
+        "suggested_fix": "Update the query to use the correct table name, e.g., `text(\"SELECT COUNT(*) FROM payments WHERE user_id = :uid\")` or use `Payment.__tablename__` to avoid hard\u2011coding.",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/payment_service.py"
+        ],
+        "quotes_total": 1,
+        "quotes_verified": 1
+      }
+    ]
+  }
+}

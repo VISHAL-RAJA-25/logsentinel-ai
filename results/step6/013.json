@@ -1,0 +1,43 @@
+{
+  "id": "013",
+  "model": "groq/openai/gpt-oss-20b",
+  "classification": {
+    "category": "Authentication",
+    "source": "rules",
+    "reason": "authentication code involved"
+  },
+  "analysis": {
+    "summary": "The login endpoint fails because the code attempts to call `.decode()` on a string stored in `user.password_hash`.",
+    "hypotheses": [
+      {
+        "cause": "`user.password_hash` is a plain string (not bytes), so calling `.decode()` raises an AttributeError. The recent commit added `.decode()` assuming a bytes type for bcrypt migration, but the database still stores the hash as a string.",
+        "confidence": 90,
+        "evidence": [
+          "`if user.password_hash.decode() != hash_password(password):`",
+          "`AttributeError: 'str' object has no attribute 'decode'`"
+        ],
+        "suggested_fix": "Remove the `.decode()` call in `demo_app/shop/user_service.py` so the comparison uses the string directly: replace the line with `if user.password_hash != hash_password(password):`",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/user_service.py"
+        ],
+        "quotes_total": 2,
+        "quotes_verified": 2
+      },
+      {
+        "cause": "The password hashing function `hash_password` may return a bytes object, while `user.password_hash` is a string, causing a type mismatch even if `.decode()` were removed.",
+        "confidence": 10,
+        "evidence": [
+          "`hash_password(password)`"
+        ],
+        "suggested_fix": "Ensure `hash_password` returns a string or convert `user.password_hash` to bytes before comparison.",
+        "risk_level": "medium",
+        "files_involved": [
+          "demo_app/shop/user_service.py"
+        ],
+        "quotes_total": 1,
+        "quotes_verified": 1
+      }
+    ]
+  }
+}

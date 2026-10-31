@@ -1,0 +1,57 @@
+{
+  "id": "010",
+  "model": "groq/openai/gpt-oss-20b",
+  "classification": {
+    "category": "Application Logic",
+    "source": "rules",
+    "reason": "plain code error"
+  },
+  "analysis": {
+    "summary": "The signup endpoint raised an IndexError because the code assumes the provided name contains at least two words.",
+    "hypotheses": [
+      {
+        "cause": "The user supplied a single-word or empty name, so `name.split()` returns fewer than two elements and accessing index 1 fails.",
+        "confidence": 90,
+        "evidence": [
+          "`display_name = name.split()[1]  # show last name in the UI`",
+          "`display_name = name.split()[1]`"
+        ],
+        "suggested_fix": "Modify `demo_app/shop/user_service.py` to safely extract the last name: `parts = name.split(); display_name = parts[-1] if parts else ''`",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/user_service.py"
+        ],
+        "quotes_total": 2,
+        "quotes_verified": 2
+      },
+      {
+        "cause": "The signup request omitted the `name` field, causing `name` to be an empty string or None, leading to an empty split list.",
+        "confidence": 30,
+        "evidence": [
+          "`user = user_service.create_user(db, body.email, body.name, body.password)`"
+        ],
+        "suggested_fix": "Add validation in the signup handler to ensure `body.name` is a non-empty string before calling `create_user`.",
+        "risk_level": "medium",
+        "files_involved": [
+          "demo_app/shop/main.py"
+        ],
+        "quotes_total": 1,
+        "quotes_verified": 1
+      },
+      {
+        "cause": "The logic incorrectly assumes the second word is always the last name; a single-word name or names with more than two words could still cause errors.",
+        "confidence": 20,
+        "evidence": [
+          "`display_name = name.split()[1]  # show last name in the UI`"
+        ],
+        "suggested_fix": "Replace the split logic with a more robust approach: `display_name = name.split()[-1]` or use a regex to extract the last word.",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/user_service.py"
+        ],
+        "quotes_total": 1,
+        "quotes_verified": 1
+      }
+    ]
+  }
+}

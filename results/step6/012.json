@@ -1,0 +1,30 @@
+{
+  "id": "012",
+  "model": "groq/openai/gpt-oss-20b",
+  "classification": {
+    "category": "Application Logic",
+    "source": "rules",
+    "reason": "plain code error"
+  },
+  "analysis": {
+    "summary": "A RecursionError occurs during user signup due to an infinite recursive call in normalize_email.",
+    "hypotheses": [
+      {
+        "cause": "The normalize_email function calls itself recursively with no base case, causing infinite recursion when invoked during signup.",
+        "confidence": 95,
+        "evidence": [
+          "`def normalize_email(email: str) -> str:`",
+          "`return normalize_email(email.strip().lower())`",
+          "`return normalize_email(email.strip().lower())`"
+        ],
+        "suggested_fix": "Modify normalize_email in demo_app/shop/user_service.py to return the processed string directly: `def normalize_email(email: str) -> str: return email.strip().lower()`",
+        "risk_level": "low",
+        "files_involved": [
+          "demo_app/shop/user_service.py"
+        ],
+        "quotes_total": 3,
+        "quotes_verified": 3
+      }
+    ]
+  }
+}

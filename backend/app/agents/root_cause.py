@@ -60,14 +60,24 @@ class AnalysisError(Exception):
 def default_llm(messages: list[dict]) -> str:
     from litellm import completion  # imported here so offline tests need no key
 
-    resp = completion(
-        model=os.getenv("LLM_MODEL"),
-        messages=messages,
-        temperature=0,
-        max_tokens=3000,
-        num_retries=3,  # retries rate-limit errors with backoff
-    )
-    return resp.choices[0].message.content or ""
+    for attempt in range(4):
+        try:
+            resp = completion(
+                model=os.getenv("LLM_MODEL"),
+                messages=messages,
+                temperature=0,
+                max_tokens=3000,
+            )
+            return resp.choices[0].message.content or ""
+        except Exception as exc:
+            # Free tiers limit tokens per minute: wait for the window to reset.
+            if "RateLimit" in type(exc).__name__ and attempt < 3:
+                wait = 20 * (attempt + 1)
+                print(f"  rate limited, waiting {wait}s ...")
+                time.sleep(wait)
+                continue
+            raise
+    return ""
 
 
 def extract_json(text: str) -> dict:
@@ -155,10 +165,16 @@ if __name__ == "__main__":
     datasets = ROOT / "datasets"
     out_dir = ROOT / "results" / "step6"
     out_dir.mkdir(parents=True, exist_ok=True)
-    wanted = sys.argv[1:]  # e.g. 001 004 ; no arguments = all datasets
+    args = sys.argv[1:]
+    force = "--force" in args
+    wanted = [a for a in args if not a.startswith("--")]  # e.g. 001 004 ; none = all datasets
+    skip_done = not wanted and not force  # a full run skips incidents that already have results
     folders = [datasets / w for w in wanted] or sorted(d for d in datasets.iterdir() if d.is_dir())
     for folder in folders:
         print(f"\nIncident {folder.name}")
+        if skip_done and (out_dir / f"{folder.name}.json").exists():
+            print("  already done, skipping (use --force to redo)")
+            continue
         try:
             truth, classification, analysis = investigate_dataset(folder)
         except Exception as exc:
@@ -171,4 +187,4 @@ if __name__ == "__main__":
             "classification": classification.model_dump(),
             "analysis": analysis.model_dump(),
         }, indent=2))
-        time.sleep(3)  # stay under free-tier rate limits
+        time.sleep(8)  # stay under free-tier rate limits
