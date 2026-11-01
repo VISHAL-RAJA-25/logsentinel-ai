@@ -226,3 +226,6 @@ test_logs/
 
 # keep dataset logs
 !datasets/**/*.log
+
+.sandbox/
+replay_logs/

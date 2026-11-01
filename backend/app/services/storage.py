@@ -8,12 +8,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from sqlalchemy import Column, DateTime, Float, Integer, String, Text, create_engine
+from sqlalchemy import Column, DateTime, Float, Integer, String, Text, create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_URL = f"sqlite:///{ROOT / 'logsentinel.db'}"
 Base = declarative_base()
+
+# columns added after the first version of the table (added automatically to older databases)
+NEW_COLUMNS = {"patch_status": "VARCHAR", "patch_attempts": "INTEGER",
+               "patch_diff": "TEXT", "validation_json": "TEXT"}
 
 
 class InvestigationRow(Base):
@@ -34,6 +38,10 @@ class InvestigationRow(Base):
     analysis_json = Column(Text)
     report_md = Column(Text)
     timeline_json = Column(Text)
+    patch_status = Column(String)  # none | no_patch | unvalidated | rejected | validated
+    patch_attempts = Column(Integer)
+    patch_diff = Column(Text)
+    validation_json = Column(Text)
 
 
 def _to_dict(row: InvestigationRow) -> dict:
@@ -54,19 +62,41 @@ def _to_dict(row: InvestigationRow) -> dict:
         "analysis": json.loads(row.analysis_json) if row.analysis_json else None,
         "report_md": row.report_md,
         "timeline": json.loads(row.timeline_json) if row.timeline_json else [],
+        "patch_status": row.patch_status,
+        "patch_attempts": row.patch_attempts,
+        "patch_diff": row.patch_diff,
+        "validation": json.loads(row.validation_json) if row.validation_json else None,
     }
+
+
+def _patch_status(state: dict) -> str:
+    patch, validation = state.get("patch"), state.get("validation")
+    if patch is None:
+        return "no_patch" if state.get("patch_error") else "none"
+    if validation is None:
+        return "unvalidated"
+    return "validated" if validation.passed else "rejected"
 
 
 class Store:
     def __init__(self, url: Optional[str] = None):
         self.engine = create_engine(url or os.getenv("LOGSENTINEL_DB", DEFAULT_URL))
         Base.metadata.create_all(self.engine)
+        self._migrate()
         self._session = sessionmaker(self.engine)
+
+    def _migrate(self) -> None:
+        existing = {c["name"] for c in inspect(self.engine).get_columns("investigations")}
+        with self.engine.begin() as conn:
+            for name, sql_type in NEW_COLUMNS.items():
+                if name not in existing:
+                    conn.execute(text(f"ALTER TABLE investigations ADD COLUMN {name} {sql_type}"))
 
     def save(self, state: dict) -> int:
         incident, analysis = state.get("incident"), state.get("analysis")
         classification = state.get("classification")
         top = analysis.hypotheses[0] if analysis else None
+        patch, validation = state.get("patch"), state.get("validation")
         row = InvestigationRow(
             status=state.get("status", "unknown"),
             log_path=state.get("log_path"),
@@ -82,6 +112,14 @@ class Store:
             analysis_json=analysis.model_dump_json() if analysis else None,
             report_md=state.get("report"),
             timeline_json=json.dumps(state.get("timeline", [])),
+            patch_status=_patch_status(state),
+            patch_attempts=state.get("patch_attempt", 0),
+            patch_diff=patch.diff if patch else None,
+            validation_json=json.dumps({
+                "final": validation.model_dump() if validation else None,
+                "history": state.get("patch_history", []),
+                "sandbox_error": state.get("sandbox_error"),
+            }) if (validation or state.get("patch_history") or state.get("sandbox_error")) else None,
         )
         with self._session() as session:
             session.add(row)
