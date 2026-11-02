@@ -46,17 +46,24 @@ USELESS = {"explanation": "Rename a log message.", "edits": [{
 }]}
 
 
-def make_llm(*patches):
-    """Answers analysis requests with ANALYSIS and patch requests with the given patches in order."""
-    patch_prompts = []
+def make_llm(*patches, reviews=()):
+    """Answers analysis requests with ANALYSIS, patch requests with the given patches in order,
+    and review requests with the given verdicts in order (default: the patch is fine)."""
+    patch_prompts, review_calls = [], []
 
     def llm(messages):
-        if "Site Reliability Engineer" in messages[0]["content"]:
+        system = messages[0]["content"]
+        if "Site Reliability Engineer" in system:
             return ANALYSIS
+        if "skeptical" in system:
+            review_calls.append(1)
+            verdict = reviews[min(len(review_calls), len(reviews)) - 1] if reviews else "root_cause_fix"
+            return json.dumps({"verdict": verdict, "reason": "reviewer says " + verdict})
         patch_prompts.append(messages[-1]["content"])
         return json.dumps(patches[min(len(patch_prompts), len(patches)) - 1])
 
     llm.patch_prompts = patch_prompts
+    llm.review_calls = review_calls
     return llm
 
 
@@ -106,3 +113,42 @@ def test_unavailable_sandbox_degrades_gracefully(tmp_path, monkeypatch):
     assert state["status"] == "completed" and state["validation"] is None
     assert "NOT VALIDATED" in state["report"]
     assert store.get(state["id"])["patch_status"] == "unvalidated"
+
+
+SWALLOW = {"explanation": "Ignore the error.", "edits": [{
+    "file": USER_FILE,
+    "old": "    if user.password_hash != hash_password(password):",
+    "new": "    try:\n        mismatch = user.password_hash != hash_password(password)\n"
+           "    except AttributeError:\n        return None\n    if mismatch:",
+}]}
+
+
+def test_patch_that_hides_the_error_is_sent_back(tmp_path):
+    llm = make_llm(SWALLOW, GOOD)
+    state, _ = run(tmp_path, llm)
+    assert state["patch_attempt"] == 2 and state["validation"].accepted
+    assert state["patch_history"][0]["passed"] is False and state["patch_history"][0]["warnings"]
+    assert "never re-raises" in llm.patch_prompts[1]
+
+
+def test_patch_that_keeps_hiding_the_error_needs_human_review(tmp_path):
+    state, store = run(tmp_path, make_llm(SWALLOW))
+    result = state["validation"]
+    assert result.passed and result.warnings and not result.accepted
+    assert state["patch_attempt"] == 3
+    assert "NEEDS HUMAN REVIEW" in state["report"]
+    assert store.get(state["id"])["patch_status"] == "needs_review"
+
+
+def test_ai_reviewer_can_send_a_patch_back(tmp_path):
+    llm = make_llm(GOOD, GOOD, reviews=("masks_symptom", "root_cause_fix"))
+    state, _ = run(tmp_path, llm)
+    assert state["patch_attempt"] == 2 and state["validation"].accepted
+    assert "AI review" in state["patch_history"][0]["warnings"][0]
+
+
+def test_best_attempt_is_reported_not_the_last_one(tmp_path):
+    state, store = run(tmp_path, make_llm(SWALLOW, USELESS, USELESS))
+    assert state["patch_attempt"] == 3
+    assert state["validation"].passed and state["validation"].warnings  # attempt 1, needs review
+    assert store.get(state["id"])["patch_status"] == "needs_review"

@@ -18,6 +18,7 @@ from langgraph.graph import END, START, StateGraph
 from app.agents.classifier import Classification, classify
 from app.agents.log_parser import parse_log_file
 from app.agents.patch_generator import PatchError, generate_patch
+from app.agents.patch_review import ai_review
 from app.agents.repo_explorer import explore, format_context
 from app.agents.root_cause import AnalysisError, analyze, default_llm
 from app.graph.report import build_report
@@ -51,6 +52,9 @@ class InvestigationState(TypedDict, total=False):
     patch_history: list[dict]
     validation: Optional[ValidationResult]
     sandbox_error: Optional[str]
+    best_rank: int
+    best_patch: Optional[PatchProposal]
+    best_validation: Optional[ValidationResult]
     status: str  # running | completed | no_incident | failed
     error: str
     report: str
@@ -134,17 +138,34 @@ def build_graph(llm: Callable = default_llm, max_commits: int = 5,
             message = f"{type(exc).__name__}: {str(exc)[:200]}"
             return {"validation": None, "sandbox_error": message,
                     "timeline": _log(state, "validate", f"could not run the sandbox: {message}")}
+        if result.passed and not result.warnings:  # second opinion, only for patches that look fine
+            note = ai_review(state["incident"], state["analysis"].hypotheses[0], patch.diff, llm)
+            if note:
+                result.warnings.append(note)
         history = list(state.get("patch_history", [])) + [
-            {"attempt": n, "diff": patch.diff, "passed": result.passed, "reason": result.reason}]
-        verdict = "PASSED" if result.passed else f"rejected: {result.reason}"
+            {"attempt": n, "diff": patch.diff, "passed": result.accepted, "reason": result.reason,
+             "warnings": result.warnings}]
+        if result.accepted:
+            verdict = "PASSED"
+        elif result.passed:
+            verdict = "passed the sandbox but needs review: " + "; ".join(result.warnings)[:160]
+        else:
+            verdict = f"rejected: {result.reason}"
+        rank = 3 if result.accepted else 2 if result.passed else 1
+        best = {}
+        if rank > state.get("best_rank", 0):  # keep the best attempt, not just the last one
+            best = {"best_rank": rank, "best_patch": patch, "best_validation": result}
         return {"validation": result, "sandbox_error": None, "patch_history": history,
-                "patch_feedback": None if result.passed else describe_failure(patch.diff, result),
-                "timeline": _log(state, "validate", f"attempt {n} {verdict}")}
+                "patch_feedback": None if result.accepted else describe_failure(patch.diff, result),
+                "timeline": _log(state, "validate", f"attempt {n} {verdict}"), **best}
 
     def report_node(state):
         timeline = _log(state, "report", "report written")
-        report = build_report({**state, "timeline": timeline})
-        return {"report": report, "status": "completed", "timeline": timeline}
+        best = {}
+        if state.get("best_validation") is not None:  # report the best attempt, not just the last one
+            best = {"patch": state["best_patch"], "validation": state["best_validation"]}
+        report = build_report({**state, **best, "timeline": timeline})
+        return {"report": report, "status": "completed", "timeline": timeline, **best}
 
     def route_after_parse(state):
         return "end" if state.get("status") == "no_incident" else "continue"
@@ -161,7 +182,7 @@ def build_graph(llm: Callable = default_llm, max_commits: int = 5,
 
     def route_after_validate(state):
         result = state.get("validation")
-        if result is None or result.passed:
+        if result is None or result.accepted:
             return "report"
         return "retry" if state.get("patch_attempt", 0) < MAX_PATCH_ATTEMPTS else "report"
 

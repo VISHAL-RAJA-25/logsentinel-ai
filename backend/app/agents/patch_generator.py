@@ -30,6 +30,9 @@ Rules:
 - Use 1 to 3 edits. Only edit files that are shown to you.
 - Fix the behaviour, do not hide the error. For example, return a proper HTTP error response
   (fastapi.HTTPException with a 4xx status) for bad input instead of letting the server crash.
+- Never hide a failure: do not wrap the failing call in a try/except that carries on normally, and do not turn
+  a required setting into an optional one. If something outside the code is broken (a missing secret, a
+  service that is down), raise fastapi.HTTPException (for example 503 with a clear message).
 - If the real fix is outside the code (a missing secret, an uninstalled package), still propose the
   best code-side mitigation and say so in "explanation".
 
@@ -132,7 +135,7 @@ def build_prompt(incident: Incident, hypothesis: Hypothesis, files: dict[str, st
 
 def generate_patch(incident: Incident, hypothesis: Hypothesis, repo_path, ref: str,
                    llm: Callable[[list[dict]], str] = default_llm,
-                   feedback: Optional[str] = None, max_attempts: int = 2) -> PatchProposal:
+                   feedback: Optional[str] = None, max_attempts: int = 3) -> PatchProposal:
     files = load_files(repo_path, ref, files_to_show(incident, hypothesis))
     if not files:
         raise PatchError("none of the involved files could be read at this version")
@@ -154,6 +157,7 @@ def generate_patch(incident: Incident, hypothesis: Hypothesis, repo_path, ref: s
             messages += [
                 {"role": "assistant", "content": raw},
                 {"role": "user", "content": f"Your reply was rejected: {str(exc)[:400]}\n"
-                                            "Reply again with ONLY the corrected JSON object."},
+                                            "Reply again with ONLY the corrected JSON object. Inside JSON strings, escape double quotes "
+                                            "with a backslash and write line breaks as the two characters backslash-n."},
             ]
     raise PatchError(f"no usable patch after {max_attempts} attempts: {last_error}")

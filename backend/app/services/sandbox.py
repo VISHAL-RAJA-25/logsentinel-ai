@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from app.agents.patch_generator import apply_edits_to_dir
+from app.agents.patch_review import review_patch
 from app.models.patch import PatchEdit, RunReport, ValidationResult
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -181,10 +182,10 @@ def run_in_docker(ws: Path) -> RunReport:
 
 
 def judge(baseline: RunReport, patched: RunReport, has_replay: bool) -> ValidationResult:
-    reproduced = baseline.replay_has_5xx or baseline.tests_failed > 0
+    reproduced = baseline.replay_crashed or baseline.tests_failed > 0
     tests_ok = patched.compiled and patched.tests_failed == 0 and patched.tests_passed > 0
     replay_ok = (not has_replay) or (
-        bool(patched.replay_statuses) and not patched.replay_has_5xx and not patched.replay_error)
+        bool(patched.replay_statuses) and not patched.replay_crashed and not patched.replay_error)
     if not reproduced:
         reason = "the bug could not be reproduced in the sandbox, so the patch cannot be validated"
     elif patched.timed_out:
@@ -219,12 +220,27 @@ def validate_patch(edits: list[PatchEdit], repo_path, ref: str,
         patched = runner(tmp / "patched")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    return judge(baseline, patched, has_replay=bool(requests))
+    result = judge(baseline, patched, has_replay=bool(requests))
+    try:
+        result.warnings = review_patch(edits, repo_path, ref)
+    except Exception:
+        result.warnings = ["the automatic patch review could not run, so a human must check this patch"]
+    return result
 
 
 def describe_failure(edits_diff: str, result: ValidationResult) -> str:
     """Text fed back to the Patch Generator after a rejected attempt."""
     p = result.patched
+    if result.passed and result.warnings:
+        problems = "\n".join(f"- {w}" for w in result.warnings)
+        return (
+            f"Your patch:\n{edits_diff}\n"
+            "The sandbox accepted it, but a review found that it hides the error instead of fixing the cause:\n"
+            f"{problems}\n"
+            "Do not swallow exceptions or make required configuration optional. Fix the cause. If the failure "
+            "comes from the environment, fail loudly instead: raise fastapi.HTTPException (for example status 503 "
+            "with a clear message) and do not record a result that did not happen."
+        )
     return (
         f"Your patch:\n{edits_diff}\n"
         f"Sandbox verdict: {result.reason}.\n"

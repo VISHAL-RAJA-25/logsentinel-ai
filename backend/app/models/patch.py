@@ -29,8 +29,9 @@ class RunReport(BaseModel):
     output_tail: str = ""
 
     @property
-    def replay_has_5xx(self) -> bool:
-        return any(status >= 500 for status in self.replay_statuses)
+    def replay_crashed(self) -> bool:
+        """An unhandled server error. 502/503/504 are deliberate 'service unavailable' answers."""
+        return any(s >= 500 and s not in (502, 503, 504) for s in self.replay_statuses)
 
 
 class ValidationResult(BaseModel):
@@ -40,3 +41,9 @@ class ValidationResult(BaseModel):
     bug_reproduced: bool
     baseline: RunReport  # the original, unpatched code
     patched: RunReport
+    warnings: list[str] = Field(default_factory=list)  # filled in by the patch review
+
+    @property
+    def accepted(self) -> bool:
+        """Passed the sandbox AND the review found nothing suspicious."""
+        return self.passed and not self.warnings

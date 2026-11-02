@@ -60,23 +60,29 @@ class AnalysisError(Exception):
 def default_llm(messages: list[dict]) -> str:
     from litellm import completion  # imported here so offline tests need no key
 
-    for attempt in range(4):
+    max_tokens = 4000
+    for attempt in range(6):
         try:
             resp = completion(
                 model=os.getenv("LLM_MODEL"),
                 messages=messages,
                 temperature=0,
-                max_tokens=3000,
+                max_tokens=max_tokens,
             )
-            return resp.choices[0].message.content or ""
         except Exception as exc:
             # Free tiers limit tokens per minute: wait for the window to reset.
-            if "RateLimit" in type(exc).__name__ and attempt < 3:
+            if "RateLimit" in type(exc).__name__ and attempt < 5:
                 wait = 20 * (attempt + 1)
                 print(f"  rate limited, waiting {wait}s ...")
                 time.sleep(wait)
                 continue
             raise
+        choice = resp.choices[0]
+        text = choice.message.content or ""
+        if not text.strip() and choice.finish_reason == "length" and max_tokens < 16000:
+            max_tokens *= 2  # a reasoning model used the whole budget before it answered
+            continue
+        return text
     return ""
 
 
@@ -137,7 +143,8 @@ def analyze(incident: Incident, classification: Classification, context_text: st
                                             "Reply again with ONLY the corrected JSON object."},
             ]
     else:
-        raise AnalysisError(f"No valid JSON after {max_attempts} attempts: {last_error}")
+        raise AnalysisError(f"No valid JSON after {max_attempts} attempts: {last_error}. "
+                            f"The last reply began with: {raw[:150]!r}")
     analysis.hypotheses.sort(key=lambda h: h.confidence, reverse=True)
     return check_grounding(analysis, user_prompt)
 

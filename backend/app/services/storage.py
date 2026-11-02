@@ -75,7 +75,9 @@ def _patch_status(state: dict) -> str:
         return "no_patch" if state.get("patch_error") else "none"
     if validation is None:
         return "unvalidated"
-    return "validated" if validation.passed else "rejected"
+    if validation.accepted:
+        return "validated"
+    return "needs_review" if validation.passed else "rejected"
 
 
 class Store:

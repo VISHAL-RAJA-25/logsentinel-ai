@@ -75,3 +75,9 @@ def test_unreproducible_bug_cannot_be_validated():
     result = judge(healthy, healthy, has_replay=True)
     assert not result.passed
     assert "could not be reproduced" in result.reason
+
+
+def test_deliberate_503_is_not_counted_as_a_crash():
+    broken = RunReport(mode="local", compiled=True, tests_passed=6, tests_failed=1, replay_statuses=[201, 500])
+    fixed = RunReport(mode="local", compiled=True, tests_passed=7, tests_failed=0, replay_statuses=[201, 503])
+    assert judge(broken, fixed, has_replay=True).passed

@@ -35,8 +35,10 @@ def build_report(state: dict) -> str:
     if patch:
         if validation is None:
             badge = "NOT VALIDATED (sandbox unavailable)"
-        elif validation.passed:
+        elif validation.accepted:
             badge = "VALIDATED in the sandbox"
+        elif validation.passed:
+            badge = "NEEDS HUMAN REVIEW (passed the sandbox, but the review found problems)"
         else:
             badge = "REJECTED by the sandbox"
         lines += [f"## Proposed patch: {badge}", patch.explanation, "", "```diff", patch.diff.rstrip(), "```", ""]
@@ -49,8 +51,10 @@ def build_report(state: dict) -> str:
                 f" -> {a.tests_passed} passed / {a.tests_failed} failed",
                 f"- Replay of the failing request, before -> after: {b.replay_statuses} -> {a.replay_statuses}",
                 f"- Patch attempts: {state.get('patch_attempt')}",
-                "",
             ]
+            lines += [f"- REVIEW WARNING: {w}" for w in validation.warnings]
+            lines += ["- The sandbox shows the patch stops the crash and breaks no test. It cannot prove the "
+                      "business behaviour is right: a human must review it before merging.", ""]
         elif state.get("sandbox_error"):
             lines += [f"- Sandbox error: {state['sandbox_error']}", ""]
     elif state.get("patch_error"):
