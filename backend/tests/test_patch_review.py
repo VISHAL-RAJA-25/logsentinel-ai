@@ -114,3 +114,9 @@ def test_ai_review_stays_quiet_for_a_real_fix_or_a_broken_reply():
     fine = lambda messages: json.dumps({"verdict": "root_cause_fix", "reason": "ok"})
     assert ai_review(INCIDENT, HYPOTHESIS, "diff", fine) is None
     assert ai_review(INCIDENT, HYPOTHESIS, "diff", lambda messages: "not json at all") is None
+
+
+def test_setting_read_with_getenv_is_fine_when_a_missing_value_raises():
+    after = {A: 'import os\n\n\ndef f():\n    key = os.getenv("API_KEY")\n    if not key:\n'
+                '        raise RuntimeError("API_KEY is missing")\n    call(key)\n'}
+    assert review_files(BEFORE, after) == []

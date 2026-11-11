@@ -56,7 +56,8 @@ def review_files(before: dict[str, str], after: dict[str, str]) -> list[str]:
         diff = make_diff({path: before.get(path, "")}, {path: after[path]})
         removed = [l[1:] for l in diff.splitlines() if l.startswith("-") and not l.startswith("---")]
         added = [l[1:] for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++")]
-        if any("os.environ[" in l for l in removed) and any(
+        fails_loudly = any(l.strip().startswith("raise ") for l in added)
+        if not fails_loudly and any("os.environ[" in l for l in removed) and any(
                 re.search(r"os\.getenv\(|os\.environ\.get\(", l) for l in added):
             warnings.append(f"{path}: a required environment variable became optional, "
                             "so a missing setting is no longer detected")

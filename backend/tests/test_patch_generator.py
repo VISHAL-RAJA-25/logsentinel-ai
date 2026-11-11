@@ -90,3 +90,34 @@ def test_previous_failure_is_included_in_the_prompt():
     gen(llm, feedback="tests failed: boom")
     prompt = llm.calls[0][1]["content"]
     assert "YOUR PREVIOUS ATTEMPT FAILED" in prompt and "tests failed: boom" in prompt
+
+
+BLOCK_REPLY = (
+    "EXPLANATION: Return early when the user does not exist.\n\n"
+    f"FILE: {USER_FILE}\n<<<<<<< SEARCH\n    if user.password_hash != hash_password(password):\n=======\n"
+    '    if user is None:\n        logger.warning("Login attempt for unknown email=%s", email)\n        return None\n'
+    "    if user.password_hash != hash_password(password):\n>>>>>>> REPLACE\n"
+)
+
+
+def test_search_replace_block_reply_works_even_with_quotes_in_the_code():
+    proposal = gen(fake_llm(BLOCK_REPLY))
+    assert 'logger.warning("Login attempt for unknown email=%s", email)' in proposal.diff
+
+
+def test_parse_reply_handles_several_edits_and_an_empty_replacement():
+    from app.agents.patch_generator import parse_reply
+
+    raw = ("EXPLANATION: Two edits.\n\n"
+           "FILE: demo_app/shop/a.py\n<<<<<<< SEARCH\nx = 1\n=======\ny = 2\n>>>>>>> REPLACE\n\n"
+           "FILE: demo_app/shop/b.py\n<<<<<<< SEARCH\nremove me\n=======\n>>>>>>> REPLACE\n")
+    data = parse_reply(raw)
+    assert [e["file"] for e in data["edits"]] == ["demo_app/shop/a.py", "demo_app/shop/b.py"]
+    assert data["edits"][0]["new"] == "y = 2" and data["edits"][1]["new"] == ""
+    assert data["explanation"] == "Two edits."
+
+
+def test_incomplete_block_is_fed_back_and_retried():
+    llm = fake_llm(f"EXPLANATION: x\n\nFILE: {USER_FILE}\n<<<<<<< SEARCH\nabc", BLOCK_REPLY)
+    assert gen(llm).diff and len(llm.calls) == 2
+    assert "no complete" in llm.calls[1][-1]["content"]

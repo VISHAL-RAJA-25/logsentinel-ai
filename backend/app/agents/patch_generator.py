@@ -5,6 +5,7 @@ It returns exact search-and-replace edits. We check them against the real file
 and generate the unified diff ourselves.
 """
 import difflib
+import re
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -23,26 +24,50 @@ SYSTEM_PROMPT = """You are a senior engineer fixing a production bug in a Python
 Propose the smallest safe code change that fixes the diagnosed root cause.
 
 Rules:
-- Reply with a single JSON object only. No markdown fences and no text outside the JSON.
 - Change only application files under demo_app/shop/. Never edit tests.
 - Express each change as an exact search-and-replace on the CURRENT file content shown to you:
-  "old" must be copied exactly (including indentation) and must occur exactly once in that file.
+  the SEARCH text must be copied exactly (including indentation) and must occur exactly once in that file.
 - Use 1 to 3 edits. Only edit files that are shown to you.
 - Fix the behaviour, do not hide the error. For example, return a proper HTTP error response
   (fastapi.HTTPException with a 4xx status) for bad input instead of letting the server crash.
 - Never hide a failure: do not wrap the failing call in a try/except that carries on normally, and do not turn
   a required setting into an optional one. If something outside the code is broken (a missing secret, a
   service that is down), raise fastapi.HTTPException (for example 503 with a clear message).
+- Never invent hostnames, URLs, credentials or packages that do not appear in the material you were given.
 - If the real fix is outside the code (a missing secret, an uninstalled package), still propose the
-  best code-side mitigation and say so in "explanation".
+  best code-side mitigation and say so in the explanation.
 
-JSON format:
-{
-  "explanation": "<one or two sentences: what the patch does and why>",
-  "edits": [
-    {"file": "demo_app/shop/example.py", "old": "<exact existing text>", "new": "<replacement text>"}
-  ]
-}"""
+Reply in exactly this format and nothing else. The code is plain text, so no quoting or escaping is needed.
+Do not use JSON and do not use markdown fences.
+
+EXPLANATION: <one or two sentences: what the patch does and why>
+
+FILE: demo_app/shop/example.py
+<<<<<<< SEARCH
+<exact existing text>
+=======
+<replacement text>
+>>>>>>> REPLACE
+
+Repeat the FILE / SEARCH / REPLACE group for each extra edit."""
+
+BLOCK = re.compile(
+    r"FILE:[ \t]*(?P<file>\S+)[ \t]*\n<<<<<<< SEARCH\n(?P<old>.*?)\n=======\n(?P<new>.*?)\n?>>>>>>> REPLACE",
+    re.DOTALL,
+)
+
+
+def parse_reply(raw: str) -> dict:
+    """Understand the model's reply. SEARCH/REPLACE blocks are expected; a JSON object is still accepted."""
+    if "<<<<<<< SEARCH" not in raw:
+        return extract_json(raw)
+    edits = [{"file": m.group("file"), "old": m.group("old"), "new": m.group("new")}
+             for m in BLOCK.finditer(raw)]
+    if not edits:
+        raise ValueError("no complete FILE / SEARCH / ======= / REPLACE block found")
+    found = re.search(r"EXPLANATION:\s*(.+?)\s*(?=FILE:)", raw, re.DOTALL)
+    return {"explanation": found.group(1).strip() if found else "Patch proposed by the model.",
+            "edits": edits}
 
 
 class PatchError(Exception):
@@ -145,7 +170,7 @@ def generate_patch(incident: Incident, hypothesis: Hypothesis, repo_path, ref: s
     for _ in range(max_attempts):
         raw = llm(messages)
         try:
-            data = extract_json(raw)
+            data = parse_reply(raw)
             data["edits"] = data.get("edits", [])[:3]
             proposal = PatchProposal.model_validate(data)
             proposal.diff = make_diff(files, apply_edits(files, proposal.edits))
@@ -157,7 +182,6 @@ def generate_patch(incident: Incident, hypothesis: Hypothesis, repo_path, ref: s
             messages += [
                 {"role": "assistant", "content": raw},
                 {"role": "user", "content": f"Your reply was rejected: {str(exc)[:400]}\n"
-                                            "Reply again with ONLY the corrected JSON object. Inside JSON strings, escape double quotes "
-                                            "with a backslash and write line breaks as the two characters backslash-n."},
+                                            "Reply again in the required EXPLANATION / FILE / SEARCH / REPLACE format only."},
             ]
     raise PatchError(f"no usable patch after {max_attempts} attempts: {last_error}")
