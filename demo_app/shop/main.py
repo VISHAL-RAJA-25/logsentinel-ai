@@ -45,6 +45,9 @@ def health():
 
 @app.post("/signup", status_code=201)
 def signup(body: SignupIn, db: Session = Depends(get_db)):
+    existing_user = user_service.get_user_by_email(db, body.email)
+    if existing_user:
+        raise HTTPException(status_code=409, detail="Email already registered")
     user = user_service.create_user(db, body.email, body.name, body.password)
     return {"id": user.id, "email": user.email}
 
