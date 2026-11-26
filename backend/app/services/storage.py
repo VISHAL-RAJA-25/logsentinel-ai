@@ -17,7 +17,7 @@ Base = declarative_base()
 
 # columns added after the first version of the table (added automatically to older databases)
 NEW_COLUMNS = {"patch_status": "VARCHAR", "patch_attempts": "INTEGER",
-               "patch_diff": "TEXT", "validation_json": "TEXT"}
+               "patch_diff": "TEXT", "validation_json": "TEXT", "pr_url": "VARCHAR"}
 
 
 class InvestigationRow(Base):
@@ -42,6 +42,7 @@ class InvestigationRow(Base):
     patch_attempts = Column(Integer)
     patch_diff = Column(Text)
     validation_json = Column(Text)
+    pr_url = Column(String)  # draft pull request opened by the Git agent
 
 
 def _to_dict(row: InvestigationRow) -> dict:
@@ -66,6 +67,7 @@ def _to_dict(row: InvestigationRow) -> dict:
         "patch_attempts": row.patch_attempts,
         "patch_diff": row.patch_diff,
         "validation": json.loads(row.validation_json) if row.validation_json else None,
+        "pr_url": row.pr_url,
     }
 
 
@@ -132,6 +134,13 @@ class Store:
         with self._session() as session:
             row = session.get(InvestigationRow, investigation_id)
             return _to_dict(row) if row else None
+
+    def set_pr_url(self, investigation_id: int, url: str) -> None:
+        with self._session() as session:
+            row = session.get(InvestigationRow, investigation_id)
+            if row is not None:
+                row.pr_url = url
+                session.commit()
 
     def list(self, limit: int = 50) -> list[dict]:
         with self._session() as session:
